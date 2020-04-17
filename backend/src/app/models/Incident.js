@@ -1,17 +1,20 @@
-import Sequelize, { Model } from 'sequelize';
+const { Model, DataTypes } = require('sequelize');
 
-class Incidents extends Model {
+class Incident extends Model {
   static init(sequelize) {
     super.init(
       {
-        title: Sequelize.STRING,
-        description: Sequelize.STRING,
-        value: Sequelize.DECIMAL,
-        ong_id: Sequelize.INTEGER,
-        deleted_at: Sequelize.DATE,
+        title: DataTypes.STRING,
+        description: DataTypes.STRING,
+        value: DataTypes.DECIMAL,
+        ong_id: DataTypes.INTEGER,
+        deleted_at: DataTypes.DATE,
       },
       {
         sequelize,
+        modelName: 'Incident',
+        tableName: 'incidents',
+        timestamps: true,
       }
     );
     return this;
@@ -22,4 +25,4 @@ class Incidents extends Model {
   }
 }
 
-export default Incidents;
+module.exports = Incident;

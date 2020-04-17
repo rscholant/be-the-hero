@@ -1,3 +1,5 @@
+import authMiddleware from './app/middlewares/auth';
+
 const express = require('express');
 const { celebrate, Segments, Joi } = require('celebrate');
 
@@ -8,8 +10,25 @@ const SessionController = require('./app/controllers/SessionController');
 
 const routes = express.Router();
 
-routes.post('/sessions', SessionController.create);
-
+routes.post(
+  '/sessions',
+  celebrate({
+    [Segments.BODY]: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().min(6).max(20).required(),
+    }),
+  }),
+  SessionController.store
+);
+routes.get(
+  '/incidents',
+  celebrate({
+    [Segments.QUERY]: Joi.object().keys({
+      page: Joi.number(),
+    }),
+  }),
+  IncidentController.index
+);
 routes.get('/ongs', OngController.index);
 routes.post(
   '/ongs',
@@ -27,6 +46,8 @@ routes.post(
   OngController.create
 );
 
+routes.use(authMiddleware);
+
 routes.get(
   '/profile',
   celebrate({
@@ -36,19 +57,17 @@ routes.get(
   }),
   ProfileController.index
 );
-
-routes.get(
+routes.post(
   '/incidents',
   celebrate({
-    [Segments.QUERY]: Joi.object().keys({
-      page: Joi.number(),
+    [Segments.BODY]: Joi.object().keys({
+      title: Joi.string().required(),
+      description: Joi.string().required().email(),
+      value: Joi.number().required(),
     }),
   }),
-  IncidentController.index
+  IncidentController.create
 );
-
-routes.post('/incidents', IncidentController.create);
-
 routes.delete(
   '/incidents/:id',
   celebrate({
