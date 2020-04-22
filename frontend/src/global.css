@@ -30,6 +30,7 @@ form input {
   border: 1px solid #dcdce6;
   border-radius: 8px;
   padding: 0 24px;
+  margin-bottom: 5px;
 }
 
 form textarea {
