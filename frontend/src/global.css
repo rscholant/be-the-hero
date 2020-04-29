@@ -33,6 +33,19 @@ form input {
   margin-bottom: 5px;
 }
 
+.haserror {
+  border: 1px solid #e02041 !important;
+}
+
+.error {
+  width: 100%;
+  height: 60px;
+  color: #e02041;
+  padding: 0 24px;
+  margin-bottom: 15px !important; 
+  font: 400 12px Roboto, sans-serif;
+}
+
 form textarea {
   width: 100%;
   resize: vertical;

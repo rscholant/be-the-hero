@@ -1,52 +1,76 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
+import { Form } from '@unform/web';
 import { Link, useHistory } from 'react-router-dom';
 import { FiLogIn } from 'react-icons/fi';
 import './styles.css';
+import Input from '../../components/Form/input';
+
+import * as Yup from 'yup';
+import { toast } from 'react-toastify';
 
 import logoImg from '../../assets/logo.svg';
 import heroesImg from '../../assets/heroes.png';
 
 import api from '../../services/api';
 export default function Logon() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
+  const formRef = useRef(null);
+  const schema = Yup.object().shape({
+    email: Yup.string()
+      .email('Digite um e-mail válido.')
+      .required('O e-mail é obrigatório.'),
+    password: Yup.string()
+      .required('A senha é obrigatória.')
+      .min(6, 'A senha deve conter pelo menos 6 caracteres.'),
+  });
   const history = useHistory();
 
-  async function handleLogin(e) {
-    e.preventDefault();
+  async function handleLogin(data) {
     try {
-      const { data } = await api.post('sessions', { email, password });
+      formRef.current.setErrors({});
+
+      await schema.validate(data, {
+        abortEarly: false,
+      });
+
+      const { response } = await api.post('sessions', data);
       localStorage.setItem(
         '@bethehero',
         JSON.stringify({
-          token: data.token,
-          name: data.name,
-          expireAt: data.expireAt,
+          token: response.token,
+          name: response.name,
+          expireAt: response.expireAt,
         })
       );
       history.push('/profile');
-    } catch (error) {
-      alert('Falha no login, tente novamente.');
+    } catch (err) {
+      if (err instanceof Yup.ValidationError) {
+        const errorMessages = {};
+
+        err.inner.forEach((error) => {
+          errorMessages[error.path] = error.message;
+        });
+
+        formRef.current.setErrors(errorMessages);
+        toast.error(
+          'Erro na validação dos campos, corrija-os e tente novamente! '
+        );
+      }else {        
+        if (err.response.status === 404) {
+          toast.error('Usuario ou senha não encontrados 😕');
+        } else {
+          toast.error('Parece que algo deu errado, por favor, tente novamente 😕');
+        }
+      }
     }
   }
   return (
     <div className="logon-container">
       <section className="form">
         <img src={logoImg} alt="Be The Heroe" />
-        <form onSubmit={handleLogin}>
+        <Form ref={formRef} onSubmit={handleLogin}>
           <h1>Faça seu logon</h1>
-          <input
-            placeholder="Seu e-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Sua senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <Input placeholder="Seu e-mail" name="email" />
+          <Input type="password" placeholder="Sua senha" name="password" />
 
           <button className="button" type="submit">
             Entrar
@@ -56,7 +80,7 @@ export default function Logon() {
             <FiLogIn size={16} color="#e02041" />
             Não tenho cadastro
           </Link>
-        </form>
+        </Form>
       </section>
       <img src={heroesImg} alt="Heroes" />
     </div>
